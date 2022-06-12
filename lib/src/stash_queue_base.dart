@@ -64,7 +64,7 @@ class FifoQueue {
 
   Future<PtrRecord> _getPtrRecord() async {
     var ptrRecord = await _vault.get(pointerKey);
-    ptrRecord ??= '{"size": 0, "start": 0, "end": 0}';
+    ptrRecord ??= '{"s": 0, "e": 0}';
     PtrRecord result = PtrRecord.fromJson(jsonDecode(ptrRecord));
     if (result.size == 0) {
       // don't keep increasing pointers unnecessarily
@@ -81,14 +81,13 @@ class PtrRecord {
   PtrRecord(this.start, this.end);
 
   PtrRecord.fromJson(Map<String, dynamic> json)
-      : start = json['start'],
-        end = json['end'];
+      : start = json['s'],
+        end = json['e'];
 
   Map<String, dynamic> toJson() {
     return {
-      'size': size,
-      'start': start,
-      'end': end,
+      's': start,
+      'e': end,
     };
   }
 }
