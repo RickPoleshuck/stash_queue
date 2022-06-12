@@ -36,13 +36,12 @@ class FifoQueue {
 
   // clear is fast but leaves orphan files
   Future<void> clear() async {
-    await _putPtrRecord(PtrRecord(0, 0, 0));
+    await _putPtrRecord(PtrRecord(0, 0));
   }
 
   Future<void> put(String value) async {
     var ptrRecord = await _getPtrRecord();
     await _vault.put(ptrRecord.end.toString(), value);
-    ptrRecord.size++;
     ptrRecord.end++;
     await _putPtrRecord(ptrRecord);
   }
@@ -53,7 +52,6 @@ class FifoQueue {
       throw RangeError('FIFO queue is empty');
     }
     String result = await _vault.getAndRemove(ptrRecord.start.toString()) ?? '';
-    ptrRecord.size--;
     ptrRecord.start++;
     await _putPtrRecord(ptrRecord);
     return result;
@@ -77,15 +75,13 @@ class FifoQueue {
 }
 
 class PtrRecord {
-  int size;
   int start;
   int end;
-
-  PtrRecord(this.size, this.start, this.end);
+  get size => end - start;
+  PtrRecord(this.start, this.end);
 
   PtrRecord.fromJson(Map<String, dynamic> json)
-      : size = json['size'],
-        start = json['start'],
+      : start = json['start'],
         end = json['end'];
 
   Map<String, dynamic> toJson() {

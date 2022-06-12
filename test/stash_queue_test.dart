@@ -33,6 +33,8 @@ void main() {
       expect(await fifo.size, 2);
       result = await fifo.get();
       result = await fifo.get();
+      expect(result, test3);
+      expect(await fifo.size, 0);
       try {
         result = await fifo.get();
         fail('expected exception');
