@@ -7,6 +7,7 @@ import 'package:stash_file/stash_file.dart';
 ///
 class FifoQueue {
   static const pointerKey = 'ptr';
+  static const fileLock = FileLock.blockingExclusive;
 
   FifoQueue._create();
 
@@ -27,7 +28,7 @@ class FifoQueue {
 
   Future<int> get size async {
     try {
-      _fileLock.lockSync(FileLock.exclusive);
+      _fileLock.lockSync(fileLock);
       var ptrRecord = await _getPtrRecord();
       return ptrRecord.size;
     } finally {
@@ -38,7 +39,7 @@ class FifoQueue {
   // potentially slow as all files are removed
   Future<void> erase() async {
     try {
-      _fileLock.lockSync(FileLock.exclusive);
+      _fileLock.lockSync(fileLock);
       while (await size != 0) {
         await get();
       }
@@ -50,7 +51,7 @@ class FifoQueue {
   // clear is fast but leaves orphan files
   Future<void> clear() async {
     try {
-      _fileLock.lockSync(FileLock.blockingExclusive);
+      _fileLock.lockSync(fileLock);
       PtrRecord ptrRecord = await _getPtrRecord();
       if (ptrRecord.size > 0) {
         await _putPtrRecord(PtrRecord(0, 0));
@@ -62,7 +63,7 @@ class FifoQueue {
 
   Future<void> put(String value) async {
     try {
-      _fileLock.lockSync(FileLock.blockingExclusive);
+      _fileLock.lockSync(fileLock);
       var ptrRecord = await _getPtrRecord();
       await _vault.put(ptrRecord.end.toString(), value);
       ptrRecord.end++;
@@ -74,7 +75,7 @@ class FifoQueue {
 
   Future<String> get() async {
     try {
-      _fileLock.lockSync(FileLock.exclusive);
+      _fileLock.lockSync(fileLock);
       var ptrRecord = await _getPtrRecord();
       if (ptrRecord.size <= 0) {
         throw RangeError('FIFO queue is empty');
